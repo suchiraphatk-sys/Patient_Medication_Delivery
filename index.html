@@ -270,9 +270,120 @@
     .form-row { grid-template-columns: 1fr; }
     .summary-row { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ---- Login Overlay ---- */
+  #login-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #B0000A 0%, #E8000D 50%, #ff6b6b 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #login-overlay.hidden { display: none; }
+
+  .login-box {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .login-logo {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #E8000D, #ff6b6b);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin: 0 auto 18px;
+    box-shadow: 0 6px 20px rgba(232,0,13,0.3);
+  }
+  .login-box h2 {
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--gray-dark); line-height: 1.4; margin-bottom: 4px;
+  }
+  .login-box p {
+    font-size: 0.8rem; color: var(--gray); margin-bottom: 28px;
+  }
+  .login-field {
+    text-align: left; margin-bottom: 16px;
+  }
+  .login-field label {
+    display: block; font-size: 0.8rem; font-weight: 600;
+    color: var(--gray); margin-bottom: 6px;
+  }
+  .login-field input {
+    width: 100%;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 11px 14px;
+    font-family: 'Sarabun', sans-serif; font-size: 0.95rem;
+    color: var(--gray-dark); transition: border-color 0.2s;
+  }
+  .login-field input:focus { outline: none; border-color: var(--red); }
+  .login-field input.error { border-color: var(--red); background: #fff5f5; }
+
+  .btn-login {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #B0000A, #E8000D);
+    color: white; border: none; border-radius: 10px;
+    font-family: 'Sarabun', sans-serif; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; margin-top: 4px;
+    box-shadow: 0 4px 15px rgba(232,0,13,0.3);
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(232,0,13,0.4); }
+  .btn-login:active { transform: translateY(0); }
+
+  .login-error {
+    background: #fff0f0; color: var(--red-dark);
+    border: 1px solid #fccdd0; border-radius: 8px;
+    padding: 9px 12px; font-size: 0.85rem;
+    margin-top: 12px; display: none;
+  }
+  .login-error.show { display: block; }
+  .login-footer { margin-top: 20px; font-size: 0.75rem; color: #bbb; }
+
+  /* User badge in header */
+  .user-badge {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.85rem;
+  }
+  .user-badge span {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px; border-radius: 20px;
+  }
+  .btn-logout {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white; border-radius: 8px;
+    padding: 5px 12px; font-size: 0.82rem;
+    font-family: 'Sarabun', sans-serif;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.25); }
 </style>
 </head>
 <body>
+
+<!-- Login Overlay -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">⚡</div>
+    <h2>โครงการส่งยาถึงบ้าน<br>Flash Express</h2>
+    <p>ห้องจ่ายยาผู้ป่วยนอก โรงพยาบาลโกสุมพิสัย</p>
+
+    <div class="login-field">
+      <label>ชื่อผู้ใช้</label>
+      <input type="text" id="login-user" placeholder="กรอกชื่อผู้ใช้"
+             onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
+    </div>
+    <div class="login-field">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="login-pass" placeholder="กรอกรหัสผ่าน"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔐 เข้าสู่ระบบ</button>
+    <div class="login-error" id="login-error">❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+    <div class="login-footer">ติดต่อผู้ดูแลระบบหากลืมรหัสผ่าน</div>
+  </div>
+</div>
 
 <!-- Header -->
 <header>
@@ -281,6 +392,10 @@
     <div class="header-text">
       <h1>โครงการส่งยาถึงบ้าน โดยบริษัท Flash Express</h1>
       <p>ดำเนินงานโดยห้องจ่ายยาผู้ป่วยนอก โรงพยาบาลโกสุมพิสัย</p>
+    </div>
+    <div class="user-badge">
+      <span>👤 <span id="logged-user"></span></span>
+      <button class="btn-logout" onclick="doLogout()">ออกจากระบบ</button>
     </div>
   </div>
 </header>
@@ -464,6 +579,51 @@ function handleRequest(e) {
 -->
 
 <script>
+// =============================================
+//  USERS (username: password)
+//  เพิ่ม/แก้ไข ผู้ใช้ได้ที่นี่
+// =============================================
+const USERS = {
+  'admin':    'admin1234',
+  'pharmacy': 'pharmacy2569',
+  'nurse':    'nurse2569',
+};
+
+// =============================================
+//  LOGIN / LOGOUT
+// =============================================
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+
+  if (USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('flash_user', user);
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('logged-user').textContent = user;
+    errEl.classList.remove('show');
+    loadData();
+  } else {
+    errEl.classList.add('show');
+    document.getElementById('login-user').classList.add('error');
+    document.getElementById('login-pass').classList.add('error');
+    document.getElementById('login-pass').value = '';
+    setTimeout(() => {
+      document.getElementById('login-user').classList.remove('error');
+      document.getElementById('login-pass').classList.remove('error');
+    }, 1500);
+  }
+}
+
+function doLogout() {
+  if (!confirm('ต้องการออกจากระบบ?')) return;
+  sessionStorage.removeItem('flash_user');
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').classList.remove('show');
+}
+
 // =============================================
 //  CONFIG
 // =============================================
@@ -717,11 +877,19 @@ function showStatus(type, msg) {
 //  INIT
 // =============================================
 window.onload = () => {
+  // ตรวจสอบ session
+  const savedUser = sessionStorage.getItem('flash_user');
+  if (savedUser) {
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('logged-user').textContent = savedUser;
+  }
+  // ตั้งค่า Google Sheets
   if (localStorage.getItem('flash_script_url')) {
     document.getElementById('setup-banner').style.display = 'none';
     SCRIPT_URL = localStorage.getItem('flash_script_url');
   }
-  loadData();
+  // โหลดข้อมูลเฉพาะเมื่อ login แล้ว
+  if (savedUser) loadData();
 };
 </script>
 </body>
