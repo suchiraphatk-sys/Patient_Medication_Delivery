@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โครงการส่งยาถึงบ้าน - Flash Express</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --red: #E8000D;
+    --red-dark: #B0000A;
+    --red-light: #fff0f0;
+    --yellow: #FFD700;
+    --gray-dark: #1a1a2e;
+    --gray: #4a4a6a;
+    --gray-light: #f5f5fa;
+    --white: #ffffff;
+    --border: #e0e0ef;
+    --success: #2ecc71;
+    --shadow: 0 4px 20px rgba(232,0,13,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--gray-light);
+    color: var(--gray-dark);
+    min-height: 100vh;
+  }
+
+  /* ---- Header ---- */
+  header {
+    background: linear-gradient(135deg, var(--red-dark) 0%, var(--red) 60%, #ff4444 100%);
+    color: white;
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(232,0,13,0.35);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .header-logo {
+    width: 48px; height: 48px;
+    background: var(--yellow);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .header-text h1 { font-size: 1.15rem; font-weight: 700; line-height: 1.3; }
+  .header-text p  { font-size: 0.82rem; opacity: 0.85; margin-top: 2px; }
+
+  /* ---- Setup Banner ---- */
+  #setup-banner {
+    background: #fff8e1;
+    border-bottom: 2px solid var(--yellow);
+    padding: 10px 24px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #7a5500;
+  }
+  #setup-banner a { color: var(--red); font-weight: 600; }
+
+  /* ---- Config Panel ---- */
+  .config-panel {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: none;
+  }
+  .config-panel.open { display: block; }
+  .config-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .config-inner label { font-size: 0.8rem; font-weight: 600; color: var(--gray); }
+  .config-inner input {
+    display: block; width: 360px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-family: monospace; font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  /* ---- Main Layout ---- */
+  main {
+    max-width: 1100px;
+    margin: 28px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+  }
+
+  /* ---- Cards ---- */
+  .card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    background: var(--red-light);
+    border-bottom: 1px solid #fccdd0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-header .icon { font-size: 1.3rem; }
+  .card-header h2 { font-size: 1rem; font-weight: 700; color: var(--red-dark); }
+  .card-body { padding: 20px; }
+
+  /* ---- Form ---- */
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block; font-size: 0.82rem; font-weight: 600;
+    color: var(--gray); margin-bottom: 6px;
+  }
+  .form-group select,
+  .form-group input[type="number"] {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.95rem;
+    color: var(--gray-dark);
+    transition: border-color 0.2s;
+    background: white;
+  }
+  .form-group select:focus,
+  .form-group input[type="number"]:focus {
+    outline: none; border-color: var(--red);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn {
+    width: 100%; padding: 12px;
+    border: none; border-radius: 10px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--red); color: white;
+  }
+  .btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+  .btn-outline {
+    background: white; color: var(--gray);
+    border: 1.5px solid var(--border); margin-top: 8px;
+  }
+  .btn-outline:hover { border-color: var(--red); color: var(--red); }
+
+  /* ---- Status ---- */
+  .status-msg {
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 0.88rem; margin-top: 12px;
+    display: none;
+  }
+  .status-msg.success { background: #e8f9f0; color: #1a7a45; border: 1px solid #a8e6c3; display: block; }
+  .status-msg.error   { background: #fff0f0; color: var(--red-dark); border: 1px solid #fccdd0; display: block; }
+  .status-msg.loading { background: #fffbe6; color: #7a5500; border: 1px solid #ffe082; display: block; }
+
+  /* ---- Right column ---- */
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  /* ---- Data Table ---- */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  thead tr { background: var(--red-light); }
+  thead th {
+    padding: 10px 14px; text-align: center;
+    font-weight: 700; color: var(--red-dark);
+    font-size: 0.82rem; letter-spacing: 0.3px;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: #fafafa; }
+  tbody td { padding: 9px 14px; text-align: center; font-size: 0.88rem; }
+  tbody td:nth-child(2) { text-align: left; }
+  .badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    background: var(--red-light); color: var(--red-dark);
+  }
+  .empty-row td { color: #aaa; font-style: italic; padding: 28px; }
+
+  /* ---- Table actions ---- */
+  .table-actions {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 14px 20px; border-top: 1px solid var(--border);
+    background: var(--gray-light); border-radius: 0 0 16px 16px;
+  }
+  .btn-sm {
+    padding: 7px 16px; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 600; border: none; cursor: pointer;
+    font-family: 'Sarabun', sans-serif; transition: all 0.2s;
+  }
+  .btn-sm-primary { background: var(--red); color: white; }
+  .btn-sm-primary:hover { background: var(--red-dark); }
+  .btn-sm-pdf { background: #2c3e8c; color: white; }
+  .btn-sm-pdf:hover { background: #1a2566; }
+  .btn-sm-outline { background: white; color: var(--gray); border: 1.5px solid var(--border); }
+  .btn-sm-outline:hover { border-color: var(--red); color: var(--red); }
+  .record-count { font-size: 0.82rem; color: var(--gray); margin-left: auto; }
+
+  /* ---- Chart ---- */
+  .chart-wrap { padding: 4px 0; }
+  .chart-filter {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .chart-filter label { font-size: 0.82rem; font-weight: 600; color: var(--gray); }
+  .chart-filter select {
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-family: 'Sarabun', sans-serif; font-size: 0.85rem;
+    background: white;
+  }
+  .summary-row {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
+    margin-bottom: 16px;
+  }
+  .summary-box {
+    background: var(--red-light); border-radius: 12px;
+    padding: 12px 14px; text-align: center;
+  }
+  .summary-box .num { font-size: 1.6rem; font-weight: 700; color: var(--red-dark); }
+  .summary-box .lbl { font-size: 0.75rem; color: var(--gray); margin-top: 2px; }
+
+  /* ---- Spinner ---- */
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- PDF print styles ---- */
+  @media print {
+    header, #setup-banner, .config-panel, .card:first-child,
+    .table-actions, .chart-wrap, .btn, .chart-filter, .summary-row { display: none !important; }
+    main { grid-template-columns: 1fr; margin: 0; padding: 0; }
+    .right-col { gap: 0; }
+    .card { box-shadow: none; border-radius: 0; }
+    body { background: white; }
+    .pdf-header { display: block !important; }
+  }
+  .pdf-header {
+    display: none;
+    text-align: center; margin-bottom: 20px;
+  }
+  .pdf-header h1 { font-size: 1.2rem; font-weight: 700; }
+  .pdf-header p  { font-size: 0.95rem; margin-top: 4px; }
+
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .summary-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="header-logo">⚡</div>
+    <div class="header-text">
+      <h1>โครงการส่งยาถึงบ้าน โดยบริษัท Flash Express</h1>
+      <p>ดำเนินงานโดยห้องจ่ายยาผู้ป่วยนอก โรงพยาบาลโกสุมพิสัย</p>
+    </div>
+  </div>
+</header>
+
+<!-- Setup Banner -->
+<div id="setup-banner">
+  ⚙️ กรุณาตั้งค่า Google Sheets ก่อนใช้งาน —
+  <a href="#" onclick="toggleConfig()">คลิกตั้งค่าที่นี่</a>
+</div>
+
+<!-- Config Panel -->
+<div class="config-panel" id="config-panel">
+  <div class="config-inner">
+    <div>
+      <label>Google Sheets ID</label>
+      <input type="text" id="sheet-id" placeholder="1IC8Kk01wUQptZlEysAM89yY13fEhh7Ll2MFwOy8oxqU">
+    </div>
+    <div>
+      <label>Apps Script Web App URL</label>
+      <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/AKfycbz6pDCcPtav2REiqupuqvp7TdW2lqnGnp6-xe76BKf0pHaixwoivbDQVaDKThdjkM0IWg/exec" style="width:400px">
+    </div>
+    <button class="btn btn-primary" style="width:auto;padding:9px 20px;margin-top:4px" onclick="saveConfig()">💾 บันทึก</button>
+    <button class="btn btn-outline" style="width:auto;padding:9px 20px;margin-top:4px" onclick="toggleConfig()">ปิด</button>
+  </div>
+  <div style="max-width:1100px;margin:10px auto 0;padding:0 0;font-size:0.8rem;color:#7a5500;">
+    📋 วิธีสร้าง Apps Script: ใน Google Sheet → Extensions → Apps Script → วางโค้ด Apps Script ด้านล่าง → Deploy as Web App
+  </div>
+</div>
+
+<main>
+  <!-- LEFT: Form -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">✏️</span>
+        <h2>บันทึกข้อมูล</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>เดือน</label>
+            <select id="inp-month">
+              <option value="ม.ค.">ม.ค.</option>
+              <option value="ก.พ.">ก.พ.</option>
+              <option value="มี.ค.">มี.ค.</option>
+              <option value="เม.ย.">เม.ย.</option>
+              <option value="พ.ค." selected>พ.ค.</option>
+              <option value="มิ.ย.">มิ.ย.</option>
+              <option value="ก.ค.">ก.ค.</option>
+              <option value="ส.ค.">ส.ค.</option>
+              <option value="ก.ย.">ก.ย.</option>
+              <option value="ต.ค.">ต.ค.</option>
+              <option value="พ.ย.">พ.ย.</option>
+              <option value="ธ.ค.">ธ.ค.</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ปี (พ.ศ.)</label>
+            <input type="number" id="inp-year" value="2569" min="2560" max="2600">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>จำนวนวันส่งยา</label>
+            <input type="number" id="inp-days" min="1" max="31" placeholder="เช่น 13">
+          </div>
+          <div class="form-group">
+            <label>จำนวนคน</label>
+            <input type="number" id="inp-people" min="1" placeholder="เช่น 250">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-save" onclick="saveRecord()">
+          💾 บันทึกลง Google Sheets
+        </button>
+        <button class="btn btn-outline" onclick="loadData()">
+          🔄 โหลดข้อมูลใหม่
+        </button>
+        <div class="status-msg" id="status-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Table + Chart -->
+  <div class="right-col">
+
+    <!-- Dashboard -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">📊</span>
+        <h2>Dashboard</h2>
+      </div>
+      <div class="card-body">
+        <div class="summary-row" id="summary-row">
+          <div class="summary-box"><div class="num" id="sum-total">-</div><div class="lbl">รายการทั้งหมด</div></div>
+          <div class="summary-box"><div class="num" id="sum-people">-</div><div class="lbl">รวมจำนวนคน</div></div>
+          <div class="summary-box"><div class="num" id="sum-days">-</div><div class="lbl">รวมวันส่งยา</div></div>
+        </div>
+        <div class="chart-filter">
+          <label>แสดงข้อมูลปี พ.ศ.</label>
+          <select id="chart-year-filter" onchange="renderChart()">
+            <option value="all">ทุกปี</option>
+          </select>
+          <label style="margin-left:12px">กราฟ</label>
+          <select id="chart-type" onchange="renderChart()">
+            <option value="bar">แท่ง (จำนวนคน)</option>
+            <option value="line">เส้น (จำนวนคน)</option>
+            <option value="days">แท่ง (จำนวนวัน)</option>
+          </select>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="myChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">📋</span>
+        <h2>ข้อมูลทั้งหมด</h2>
+      </div>
+      <!-- PDF Header (print only) -->
+      <div class="pdf-header">
+        <h1>โครงการส่งยาถึงบ้าน โดยบริษัท Flash Express</h1>
+        <p>ดำเนินงานโดยห้องจ่ายยาผู้ป่วยนอก โรงพยาบาลโกสุมพิสัย</p>
+      </div>
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead>
+            <tr>
+              <th>ลำดับที่</th>
+              <th>เดือน ปี</th>
+              <th>จำนวนวันส่งยา</th>
+              <th>จำนวนคน</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr class="empty-row"><td colspan="4">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-actions">
+        <button class="btn-sm btn-sm-primary" onclick="loadData()">🔄 รีเฟรช</button>
+        <button class="btn-sm btn-sm-pdf" onclick="exportPDF()">🖨️ บันทึก PDF</button>
+        <span class="record-count" id="record-count"></span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ======================= APPS SCRIPT CODE ======================= -->
+<!--
+วาง code นี้ใน Google Apps Script แทนที่ Code.gs ทั้งหมด แล้ว Deploy as Web App
+
+function doGet(e) {
+  return handleRequest(e);
+}
+function doPost(e) {
+  return handleRequest(e);
+}
+function handleRequest(e) {
+  var action = (e.parameter && e.parameter.action) || (e.postData && JSON.parse(e.postData.contents).action);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheets()[0];
+  var result;
+  if (action === 'read') {
+    var data = sheet.getDataRange().getValues();
+    result = { status: 'ok', data: data };
+  } else if (action === 'write') {
+    var body = JSON.parse(e.postData.contents);
+    var lastRow = sheet.getLastRow();
+    var num = lastRow; // row 1 = header
+    sheet.appendRow([num, body.month, body.days, body.people]);
+    result = { status: 'ok', row: num };
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+-->
+
+<script>
+// =============================================
+//  CONFIG
+// =============================================
+let SCRIPT_URL = localStorage.getItem('flash_script_url') || '';
+let allData = [];
+let chartInstance = null;
+
+// Pre-load sample data from docx
+const SAMPLE = [
+  [1,'พ.ค. 2567',11,276],[2,'มิ.ย. 2567',11,198],[3,'ก.ค. 2567',13,240],
+  [4,'ส.ค. 2567',3,33],[5,'ก.ย. 2567',8,67],[6,'ต.ค. 2567',12,200],
+  [7,'พ.ย. 2567',11,242],[8,'ธ.ค. 2567',11,226],[9,'ม.ค. 2568',10,161],
+  [10,'ก.พ. 2568',11,195],[11,'มี.ค. 2568',13,236],[12,'เม.ย. 2568',10,170],
+  [13,'พ.ค. 2568',10,175],[14,'มิ.ย. 2568',11,156],[15,'ก.ค. 2568',13,145],
+  [16,'ส.ค. 2568',10,139],[17,'ก.ย. 2568',17,174],[18,'ต.ค. 2568',13,149],
+  [19,'พ.ย. 2568',13,149],[20,'ธ.ค. 2568',17,153],[21,'ม.ค. 2569',14,182],
+  [22,'ก.พ. 2569',14,191],[23,'มี.ค. 2569',14,212],[24,'เม.ย. 2569',13,231],
+  [25,'พ.ค. 2569',13,275],[26,'มิ.ย. 2569',13,254],[27,'ก.ค. 2569',13,229]
+];
+
+// =============================================
+//  CONFIG UI
+// =============================================
+function toggleConfig() {
+  const p = document.getElementById('config-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    document.getElementById('script-url').value = localStorage.getItem('flash_script_url') || '';
+  }
+}
+function saveConfig() {
+  const url = document.getElementById('script-url').value.trim();
+  localStorage.setItem('flash_script_url', url);
+  SCRIPT_URL = url;
+  document.getElementById('config-panel').classList.remove('open');
+  if (url) {
+    document.getElementById('setup-banner').style.display = 'none';
+    loadData();
+  }
+}
+
+// =============================================
+//  LOAD DATA
+// =============================================
+async function loadData() {
+  if (!SCRIPT_URL) {
+    // ใช้ Sample data จากไฟล์ docx
+    allData = SAMPLE.map(r => ({ num: r[0], month: r[1], days: r[2], people: r[3] }));
+    renderTable();
+    renderChart();
+    updateSummary();
+    return;
+  }
+  showStatus('loading', '⏳ กำลังโหลดข้อมูล...');
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=read`);
+    const json = await res.json();
+    if (json.status === 'ok') {
+      const rows = json.data.slice(1); // skip header
+      allData = rows.map((r,i) => ({
+        num: r[0] || i+1, month: r[1], days: Number(r[2]), people: Number(r[3])
+      })).filter(r => r.month);
+      renderTable();
+      renderChart();
+      updateSummary();
+      showStatus('success', `✅ โหลดข้อมูลสำเร็จ ${allData.length} รายการ`);
+    }
+  } catch(e) {
+    showStatus('error', '❌ ไม่สามารถเชื่อมต่อ Google Sheets ได้ — แสดงข้อมูลตัวอย่าง');
+    allData = SAMPLE.map(r => ({ num: r[0], month: r[1], days: r[2], people: r[3] }));
+    renderTable(); renderChart(); updateSummary();
+  }
+}
+
+// =============================================
+//  SAVE RECORD
+// =============================================
+async function saveRecord() {
+  const month = document.getElementById('inp-month').value;
+  const year  = document.getElementById('inp-year').value;
+  const days  = document.getElementById('inp-days').value;
+  const people= document.getElementById('inp-people').value;
+
+  if (!days || !people) {
+    showStatus('error', '❌ กรุณากรอกจำนวนวันและจำนวนคน');
+    return;
+  }
+  const monthYear = `${month} ${year}`;
+  const record = { month: monthYear, days: Number(days), people: Number(people) };
+
+  if (!SCRIPT_URL) {
+    // Local mode
+    const num = allData.length + 1;
+    allData.push({ num, ...record });
+    renderTable(); renderChart(); updateSummary();
+    showStatus('success', `✅ บันทึกแล้ว (Demo mode — ยังไม่ได้ตั้งค่า Google Sheets)`);
+    clearForm();
+    return;
+  }
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>กำลังบันทึก...';
+  showStatus('loading', '⏳ กำลังบันทึกข้อมูล...');
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'write', ...record })
+    });
+    const json = await res.json();
+    if (json.status === 'ok') {
+      showStatus('success', `✅ บันทึกสำเร็จ (ลำดับที่ ${json.row})`);
+      clearForm();
+      await loadData();
+    }
+  } catch(e) {
+    showStatus('error', '❌ บันทึกไม่สำเร็จ กรุณาตรวจสอบ Script URL');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '💾 บันทึกลง Google Sheets';
+  }
+}
+
+function clearForm() {
+  document.getElementById('inp-days').value = '';
+  document.getElementById('inp-people').value = '';
+}
+
+// =============================================
+//  RENDER TABLE
+// =============================================
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  if (!allData.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">ยังไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allData.map(r => `
+    <tr>
+      <td><span class="badge">${r.num}</span></td>
+      <td>${r.month}</td>
+      <td>${r.days}</td>
+      <td>${Number(r.people).toLocaleString()}</td>
+    </tr>
+  `).join('');
+  document.getElementById('record-count').textContent = `ทั้งหมด ${allData.length} รายการ`;
+}
+
+// =============================================
+//  SUMMARY
+// =============================================
+function updateSummary() {
+  const total   = allData.length;
+  const people  = allData.reduce((s,r) => s + r.people, 0);
+  const days    = allData.reduce((s,r) => s + r.days, 0);
+  document.getElementById('sum-total').textContent  = total;
+  document.getElementById('sum-people').textContent = people.toLocaleString();
+  document.getElementById('sum-days').textContent   = days;
+}
+
+// =============================================
+//  CHART
+// =============================================
+function getYears() {
+  const ys = [...new Set(allData.map(r => r.month.split(' ')[1]))].sort();
+  return ys;
+}
+
+function populateYearFilter() {
+  const sel = document.getElementById('chart-year-filter');
+  const years = getYears();
+  sel.innerHTML = '<option value="all">ทุกปี</option>' +
+    years.map(y => `<option value="${y}">${y}</option>`).join('');
+}
+
+function renderChart() {
+  populateYearFilter();
+  const yearFilter = document.getElementById('chart-year-filter').value;
+  const chartType  = document.getElementById('chart-type').value;
+
+  let filtered = allData;
+  if (yearFilter !== 'all') {
+    filtered = allData.filter(r => r.month.includes(yearFilter));
+  }
+
+  const labels = filtered.map(r => r.month);
+  const values = chartType === 'days'
+    ? filtered.map(r => r.days)
+    : filtered.map(r => r.people);
+
+  const label = chartType === 'days' ? 'จำนวนวันส่งยา' : 'จำนวนคน';
+  const color  = chartType === 'days' ? '#2c3e8c' : '#E8000D';
+  const type   = chartType === 'line' ? 'line' : 'bar';
+
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('myChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data: values,
+        backgroundColor: color + '22',
+        borderColor: color,
+        borderWidth: 2,
+        borderRadius: type === 'bar' ? 6 : 0,
+        tension: 0.35,
+        fill: type === 'line',
+        pointBackgroundColor: color,
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y.toLocaleString()} ${label}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { font: { family: 'Sarabun', size: 11 }, maxRotation: 45 } },
+        y: { beginAtZero: true, ticks: { font: { family: 'Sarabun' } } }
+      }
+    }
+  });
+}
+
+// =============================================
+//  PDF
+// =============================================
+function exportPDF() {
+  window.print();
+}
+
+// =============================================
+//  STATUS MSG
+// =============================================
+function showStatus(type, msg) {
+  const el = document.getElementById('status-msg');
+  el.className = `status-msg ${type}`;
+  el.textContent = msg;
+  if (type === 'success') setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// =============================================
+//  INIT
+// =============================================
+window.onload = () => {
+  if (localStorage.getItem('flash_script_url')) {
+    document.getElementById('setup-banner').style.display = 'none';
+    SCRIPT_URL = localStorage.getItem('flash_script_url');
+  }
+  loadData();
+};
+</script>
+</body>
+</html>
