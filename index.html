@@ -251,11 +251,20 @@
   /* ---- PDF print styles ---- */
   @media print {
     header, #setup-banner, .config-panel, .card:first-child,
-    .table-actions, .chart-wrap, .btn, .chart-filter, .summary-row { display: none !important; }
+    .table-actions, .chart-wrap, .btn, .chart-filter, .summary-row,
+    #login-overlay { display: none !important; }
+
+    body { background: white; margin: 0; }
     main { grid-template-columns: 1fr; margin: 0; padding: 0; }
     .right-col { gap: 0; }
-    .card { box-shadow: none; border-radius: 0; }
-    body { background: white; }
+
+    /* สำคัญ: ปลด overflow และ height ทั้งหมด เพื่อให้ตารางแสดงครบ */
+    .card        { box-shadow: none; border-radius: 0; overflow: visible !important; height: auto !important; }
+    .table-wrap  { overflow: visible !important; height: auto !important; max-height: none !important; }
+    table        { width: 100%; page-break-inside: auto; }
+    thead        { display: table-header-group; } /* header ซ้ำทุกหน้า */
+    tr           { page-break-inside: avoid; page-break-after: auto; }
+
     .pdf-header { display: block !important; }
   }
   .pdf-header {
